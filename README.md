@@ -26,7 +26,9 @@ sudo ./install.sh
 ```
 3️⃣   **Test the Installation**
 
+```sh
 marcus --help
+```
 
 If the installation is successful, it will display available commands.
 
