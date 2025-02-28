@@ -11,7 +11,7 @@ Marcus Alias File Manager is a command-line tool for managing files and director
 
 ## **Installation**
 
-1️⃣  ** Clone the Repository**
+1️⃣  **Clone the Repository**
 
 ```sh
 git clone https://github.com/engineermarcus/marcus-alias.git
@@ -33,7 +33,7 @@ If the installation is successful, it will display available commands.
 
 ---
 
-## **Features*
+## **Features**
 
 ✅ Create, move, copy, and delete files/folders
 ✅ Navigate directories quickly
@@ -44,7 +44,9 @@ If the installation is successful, it will display available commands.
 
 ---
 
-## **Usage Examples*
+## **Usage Examples**
+
+```sh
 
 Create a file:
 
@@ -68,8 +70,9 @@ marcus --delete unwanted.txt
 
 Zip a folder:
 
-marcus --zip myfolder --As archive.zip
+marcus --zip myfolder --AS  archive.zip
 
+```
 
 ---
 
@@ -92,7 +95,7 @@ Want to improve this project? Feel free to fork, submit pull requests, or open i
 
 ## **Contact**
 
-📌 Author: Engineermarcus 
-📌 Email: engineermarcus72@gmail.com
+📌Author: Engineermarcus 
+📌Email: engineermarcus72@gmail.com
 
 
