@@ -9,7 +9,6 @@
 Marcus Alias File Manager is a command-line tool for managing files and directories efficiently. This script works across Termux, Linux, macOS, and Windows (Git Bash & WSL).
 
 
-
 ## **Installation**
 
 1️⃣  ** Clone the Repository**
