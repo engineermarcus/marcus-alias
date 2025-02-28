@@ -24,7 +24,7 @@ cd marcus-manager
 chmod +x install.sh  
 sudo ./install.sh
 ```
-3️⃣   **Teest the Installation**
+3️⃣   **Test the Installation**
 
 marcus --help
 
