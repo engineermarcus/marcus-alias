@@ -35,11 +35,11 @@ If the installation is successful, it will display available commands.
 
 ## **Features**
 
-✅ Create, move, copy, and delete files/folders
-✅ Navigate directories quickly
-✅ View file contents
-✅ Zip/unzip files
-✅ Works in Termux, Linux, macOS, and Windows
+* Create, move, copy, and delete files/folders
+* Navigate directories quickly
+* View file contents
+* Zip/unzip files
+* Works in Termux, Linux, macOS, and Windows
 
 
 ---
@@ -95,7 +95,7 @@ Want to improve this project? Feel free to fork, submit pull requests, or open i
 
 ## **Contact**
 
-📌Author: Engineermarcus 
-📌Email: engineermarcus72@gmail.com
+* Author: Engineermarcus 
+ * Email: engineermarcus72@gmail.com
 
 
