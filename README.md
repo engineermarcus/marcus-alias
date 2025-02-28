@@ -50,9 +50,13 @@ If the installation is successful, it will display available commands.
 
 ```sh
 
-Create a file:
+add  a file:
 
 marcus --add myfile.txt
+
+Create a folder:
+
+marcus --create folder_name
 
 Move a file:
 
@@ -62,13 +66,17 @@ List all files:
 
 marcus --show
 
-Rename a file:
+Rename a file/folder:
 
 marcus --rename old.txt --to new.txt
 
-Delete a file:
+delete a file:
 
 marcus --delete unwanted.txt
+
+Delete a folder:
+
+marcus --Delete folder_name
 
 Zip a folder:
 
