@@ -15,7 +15,7 @@ Marcus Alias File Manager is a command-line tool for managing files and director
 
 ```sh
 git clone https://github.com/engineermarcus/marcus-alias.git
-cd marcus-manager
+cd marcus-alias
 ```
 
 
@@ -87,7 +87,7 @@ This project is licensed under the MIT License.
 
 Want to improve this project? Feel free to fork, submit pull requests, or open issues!
 
-## **GitHub Repo:**  https://github.com/engineer/marcus-alias
+## **GitHub Repo:**  https://github.com/engineermarcus/marcus-alias
 
 
 ---
