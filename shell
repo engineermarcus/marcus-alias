@@ -38,6 +38,8 @@ usage() {
     echo "  --back                Move one directory up"
     echo "  --destination         Show current directory"
     echo "  --ping <host>         Ping a host"
+    echo "  --create <folder>     Create a new folder"
+    echo "  --add <file>          Create a new empty file"
     echo "  --help                Show this help message"
 }
 
@@ -172,6 +174,22 @@ case "$1" in
         else
             ping -c 4 "$2"
         fi
+        ;;
+    
+    --create)
+        if [[ -z "$2" ]]; then
+            echo "Error: No folder name specified."
+            exit 1
+        fi
+        mkdir -p "$2"
+        ;;
+    
+    --add)
+        if [[ -z "$2" ]]; then
+            echo "Error: No file name specified."
+            exit 1
+        fi
+        touch "$2"
         ;;
     
     --help)
