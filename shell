@@ -12,8 +12,8 @@ IS_WINDOWS = os.name == "nt"
 # Define argument parser globally
 parser = argparse.ArgumentParser(
     description="Marcus Alias Manager", epilog="Thank you for choosing Marcus Alias"
-)                                                                                                                                                                                                                                                                                                                                                                 parser.add_argument("-a","--add", type=str, help="Create a file")
-parser.add_argument("-mv","--move", type=str, help="Move a file or folder")                                                                                                      parser.add_argument("-t","--to", type=str, help="Destination of a file or folder")
+)                                                                                                                                                                                                                                                                                                                                                               parser.add_argument("-a","--add", type=str, help="Create a file")
+parser.add_argument("-mv","--move", type=str, help="Move a file or folder")                                                                                                     parser.add_argument("-t","--to", type=str, help="Destination of a file or folder")
 parser.add_argument("-s" ,"--show", action="store_true", help="List existing files and directories")
 parser.add_argument("-c", "--create", type=str, help="Create a folder")
 parser.add_argument("-nv", "--navigate", type=str, help="Navigate to a folder")
