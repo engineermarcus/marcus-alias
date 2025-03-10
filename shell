@@ -1,0 +1,94 @@
+#!/usr/bin/env python
+import os
+import shlex
+import argparse
+import subprocess
+import shutil
+import sys
+
+# Detect OS type
+IS_WINDOWS = os.name == "nt"
+
+# Define argument parser globally
+parser = argparse.ArgumentParser(
+    description="Marcus Alias File Manager",                                                                                                                                         epilog="Thank you for choosing Marcus Manager"
+)                                                                                                                                                                                                                                                                                                                                                                 parser.add_argument("-a","--add", type=str, help="Create a file")
+parser.add_argument("-mv","--move", type=str, help="Move a file or folder")                                                                                                      parser.add_argument("-t","--to", type=str, help="Destination of a file or folder")
+parser.add_argument("-s" ,"--show", action="store_true", help="List existing files and directories")
+parser.add_argument("-c", "--create", type=str, help="Create a folder")
+parser.add_argument("-nv", "--navigate", type=str, help="Navigate to a folder")
+parser.add_argument("-cp", "--copy", type=str, help="Copy file or folder")
+parser.add_argument("-d","--delete", type=str, help="Delete a file")
+parser.add_argument("-D","--Delete", type=str, help="Delete a folder")
+parser.add_argument("-rn","--rename", type=str, help="Rename a file or folder")
+parser.add_argument("-v" ,"--view", type=str, help="View file contents")
+parser.add_argument("-dst","--destination", action="store_true", help="Show current working directory")
+parser.add_argument("-z", "--zip", type=str, help="Zip a folder")
+parser.add_argument("-as","--AS", type=str, help="Zipped folder name")
+parser.add_argument("-unz", "--unzip", type=str, help="Unzip a folder.zip")
+parser.add_argument("-b", "--back",action="store_true", help="go back")
+
+
+def run_command(command):
+
+    try:
+        cmd = shlex.split(command)
+        output = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        print(output.stdout)
+    except Exception as e:
+        print(f"Error executing command: {e}")
+
+def main():
+    args = parser.parse_args()
+    command = None
+
+    if args.add:
+        command = f"type nul > {args.add}" if IS_WINDOWS else f"touch {args.add}"
+    elif args.move and args.to:
+        command = f"move {args.move} {args.to}" if IS_WINDOWS else f"mv {args.move} {args.to}"
+    elif args.show:
+        command = "dir" if IS_WINDOWS else "ls"
+    elif args.rename and args.to:
+        command = f"rename {args.rename} {args.to}" if IS_WINDOWS else f"mv {args.rename} {args.to}"
+    elif args.create:
+        command = f"mkdir {args.create}"
+    elif args.back:
+        os.chdir("..")
+        return
+    elif args.navigate:
+        os.chdir(args.navigate)
+        return
+    elif args.delete:
+        command = f"del {args.delete}" if IS_WINDOWS else f"rm {args.delete}"
+    elif args.Delete:
+        command = f"rmdir /s /q {args.Delete}" if IS_WINDOWS else f"rm -rf {args.Delete}"
+    elif args.copy and args.to:
+        command = f"xcopy /E /I {args.copy} {args.to}" if IS_WINDOWS else f"cp -r {args.copy} {args.to}"
+    elif args.view:
+        command = f"type {args.view}" if IS_WINDOWS else f"cat {args.view}"
+    elif args.destination:
+        command = "cd" if IS_WINDOWS else "pwd"
+    elif args.zip and args.AS:
+        command = f"tar -a -c -f {args.AS} {args.zip}" if IS_WINDOWS else f"zip -r {args.AS} {args.zip}"
+    elif args.unzip:
+        command = f"tar -xf {args.unzip}" if IS_WINDOWS else f"unzip {args.unzip}"
+    else:
+        print("No valid arguments provided.")
+        return
+    if command:
+        run_command(command)
+    else:
+        print("No command inputs provided")
+if __name__ == "__main__":
+    main()
+~
+~
+~
+~
+~
+~
+~
+~
+~
+~
+~
