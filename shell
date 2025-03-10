@@ -52,6 +52,9 @@ elif $IS_WINDOWS; then
     fi
 fi
 
+# File to Store Previous Directory
+PREV_DIR_FILE="$HOME/.marcus_last_dir"
+
 # Function to display usage
 usage() {
     echo "Usage: marcus [OPTION] [ARGUMENT]"
@@ -78,6 +81,8 @@ usage() {
     echo "  --view <file>         View file contents"
     echo "  --destination         Show current working directory"
     echo "  --back                Move one directory up"
+    echo "  --navigate <folder>   Navigate to a folder"
+    echo "  --restore             Return to the last directory"
     echo "  --help                Show this help message"
 }
 
@@ -174,7 +179,7 @@ case "$1" in
         ;;
 
     --move)
-        if [[ -z "$2" || -z "$4" ]]; then
+        if [[ -z "$2" || "$3" != "--to" || -z "$4" ]]; then
             echo "Error: Missing source or destination."
             exit 1
         fi
@@ -182,7 +187,7 @@ case "$1" in
         ;;
 
     --copy)
-        if [[ -z "$2" || -z "$4" ]]; then
+        if [[ -z "$2" || "$3" != "--to" || -z "$4" ]]; then
             echo "Error: Missing source or destination."
             exit 1
         fi
@@ -190,7 +195,7 @@ case "$1" in
         ;;
 
     --zip)
-        if [[ -z "$2" || -z "$4" ]]; then
+        if [[ -z "$2" || "$3" != "--as" || -z "$4" ]]; then
             echo "Error: Missing folder or zip name."
             exit 1
         fi
@@ -218,7 +223,28 @@ case "$1" in
         ;;
 
     --back)
+        echo "$PWD" > "$PREV_DIR_FILE"
         cd ..
+        ;;
+
+    --navigate)
+        if [[ -z "$2" ]]; then
+            echo "Error: No directory specified."
+            exit 1
+        elif [[ -d "$2" ]]; then
+            echo "$PWD" > "$PREV_DIR_FILE"
+            cd "$2"
+        else
+            echo "Error: Directory does not exist."
+        fi
+        ;;
+
+    --restore)
+        if [[ -f "$PREV_DIR_FILE" ]]; then
+            cd "$(cat "$PREV_DIR_FILE")"
+        else
+            echo "No previous directory stored."
+        fi
         ;;
 
     --help)
