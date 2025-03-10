@@ -1,94 +1,127 @@
-#!/usr/bin/env python
-import os
-import shlex
-import argparse
-import subprocess
-import shutil
-import sys
+#!/bin/bash
 
-# Detect OS type
-IS_WINDOWS = os.name == "nt"
+# Detect if running on macOS
+IS_MACOS=$(uname | grep -i "darwin" > /dev/null && echo "true" || echo "false")
 
-# Define argument parser globally
-parser = argparse.ArgumentParser(
-    description="Marcus Alias Manager", epilog="Thank you for choosing Marcus Alias"
-)                                                                                                                                                                                                                                                                                                                                                               parser.add_argument("-a","--add", type=str, help="Create a file")
-parser.add_argument("-mv","--move", type=str, help="Move a file or folder")                                                                                                     parser.add_argument("-t","--to", type=str, help="Destination of a file or folder")
-parser.add_argument("-s" ,"--show", action="store_true", help="List existing files and directories")
-parser.add_argument("-c", "--create", type=str, help="Create a folder")
-parser.add_argument("-nv", "--navigate", type=str, help="Navigate to a folder")
-parser.add_argument("-cp", "--copy", type=str, help="Copy file or folder")
-parser.add_argument("-d","--delete", type=str, help="Delete a file")
-parser.add_argument("-D","--Delete", type=str, help="Delete a folder")
-parser.add_argument("-rn","--rename", type=str, help="Rename a file or folder")
-parser.add_argument("-v" ,"--view", type=str, help="View file contents")
-parser.add_argument("-dst","--destination", action="store_true", help="Show current working directory")
-parser.add_argument("-z", "--zip", type=str, help="Zip a folder")
-parser.add_argument("-as","--AS", type=str, help="Zipped folder name")
-parser.add_argument("-unz", "--unzip", type=str, help="Unzip a folder.zip")
-parser.add_argument("-b", "--back",action="store_true", help="go back")
+# Function to display usage guide
+function usage() {
+    echo "Marcus Alias  Command Manager"
+    echo "Usage: $0 [OPTIONS] or directly input a Bash command"
+    echo "Options:"
+    echo "  -a, --add FILE          Create a file"
+    echo "  -mv, --move SRC DST     Move a file or folder"
+    echo "  -s, --show              List existing files and directories"
+    echo "  -c, --create DIR        Create a folder"
+    echo "  -nv, --navigate DIR     Navigate to a folder"
+    echo "  -cp, --copy SRC DST     Copy file or folder"
+    echo "  -d, --delete FILE       Delete a file"
+    echo "  -D, --Delete DIR        Delete a folder"
+    echo "  -rn, --rename SRC DST   Rename a file or folder"
+    echo "  -v, --view FILE         View file contents"
+    echo "  -dst, --destination     Show current working directory"
+    echo "  -z, --zip DIR NAME      Zip a folder"
+    echo "  -unz, --unzip FILE      Unzip a folder.zip"
+    echo "  -b, --back              Go back (cd ..)"
+    echo "  -cmd, --command 'CMD'   Execute any Bash command"
+    echo "  -i, --interactive       Enter interactive mode (type commands live)"
+    exit 1
+}
 
+# Function to execute a command and display status
+run_command() {
+    if eval "$1"; then
+        echo "✔ Command executed successfully"
+    else
+        echo "✘ Error executing command: $1"
+    fi
+}
 
-def run_command(command):
+# Interactive mode: keep executing commands until exit
+interactive_mode() {
+    echo "💻 Entering Interactive Mode (type 'exit' to quit)"
+    while true; do
+        read -rp "Marcus$ " user_cmd
+        [[ "$user_cmd" == "exit" ]] && break
+        eval "$user_cmd"
+    done
+}
 
-    try:
-        cmd = shlex.split(command)
-        output = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        print(output.stdout)
-    except Exception as e:
-        print(f"Error executing command: {e}")
-
-def main():
-    args = parser.parse_args()
-    command = None
-
-    if args.add:
-        command = f"type nul > {args.add}" if IS_WINDOWS else f"touch {args.add}"
-    elif args.move and args.to:
-        command = f"move {args.move} {args.to}" if IS_WINDOWS else f"mv {args.move} {args.to}"
-    elif args.show:
-        command = "dir" if IS_WINDOWS else "ls"
-    elif args.rename and args.to:
-        command = f"rename {args.rename} {args.to}" if IS_WINDOWS else f"mv {args.rename} {args.to}"
-    elif args.create:
-        command = f"mkdir {args.create}"
-    elif args.back:
-        os.chdir("..")
-        return
-    elif args.navigate:
-        os.chdir(args.navigate)
-        return
-    elif args.delete:
-        command = f"del {args.delete}" if IS_WINDOWS else f"rm {args.delete}"
-    elif args.Delete:
-        command = f"rmdir /s /q {args.Delete}" if IS_WINDOWS else f"rm -rf {args.Delete}"
-    elif args.copy and args.to:
-        command = f"xcopy /E /I {args.copy} {args.to}" if IS_WINDOWS else f"cp -r {args.copy} {args.to}"
-    elif args.view:
-        command = f"type {args.view}" if IS_WINDOWS else f"cat {args.view}"
-    elif args.destination:
-        command = "cd" if IS_WINDOWS else "pwd"
-    elif args.zip and args.AS:
-        command = f"tar -a -c -f {args.AS} {args.zip}" if IS_WINDOWS else f"zip -r {args.AS} {args.zip}"
-    elif args.unzip:
-        command = f"tar -xf {args.unzip}" if IS_WINDOWS else f"unzip {args.unzip}"
-    else:
-        print("No valid arguments provided.")
-        return
-    if command:
-        run_command(command)
-    else:
-        print("No command inputs provided")
-if __name__ == "__main__":
-    main()
-~
-~
-~
-~
-~
-~
-~
-~
-~
-~
-~
+# Parse arguments
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -a|--add)
+            run_command "touch '$2'"
+            shift 2
+            ;;
+        -mv|--move)
+            run_command "mv '$2' '$3'"
+            shift 3
+            ;;
+        -s|--show)
+            run_command "ls -l"
+            shift
+            ;;
+        -c|--create)
+            run_command "mkdir -p '$2'"
+            shift 2
+            ;;
+        -nv|--navigate)
+            if [[ -d "$2" ]]; then
+                cd "$2" || exit
+                echo "✔ Navigated to '$2'"
+            else
+                echo "✘ Error: '$2' is not a valid directory"
+            fi
+            shift 2
+            ;;
+        -cp|--copy)
+            run_command "cp -r '$2' '$3'"
+            shift 3
+            ;;
+        -d|--delete)
+            run_command "rm -f '$2'"
+            shift 2
+            ;;
+        -D|--Delete)
+            run_command "rm -rf '$2'"
+            shift 2
+            ;;
+        -rn|--rename)
+            run_command "mv '$2' '$3'"
+            shift 3
+            ;;
+        -v|--view)
+            run_command "cat '$2'"
+            shift 2
+            ;;
+        -dst|--destination)
+            run_command "pwd"
+            shift
+            ;;
+        -z|--zip)
+            run_command "zip -r '$3.zip' '$2'"
+            shift 3
+            ;;
+        -unz|--unzip)
+            run_command "unzip '$2'"
+            shift 2
+            ;;
+        -b|--back)
+            cd .. || exit
+            echo "✔ Moved one directory back"
+            shift
+            ;;
+        -cmd|--command)
+            run_command "$2"
+            shift 2
+            ;;
+        -i|--interactive)
+            interactive_mode
+            exit
+            ;;
+        *)
+            echo "✘ Unknown option: $1"
+            usage
+            ;;
+    esac
+done
