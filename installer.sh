@@ -41,7 +41,7 @@ export PS1
 " >> ~/.bashrc
 fi
 
-echo "Alias and Custom Prompt Installed Successfully!"
+echo "Marcus Alias Installed Successfully!"
 
 # Auto-reload ~/.bashrc
 exec bash
