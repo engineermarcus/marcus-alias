@@ -36,7 +36,7 @@ function $ALIAS_NAME() {
 }
 
 # Set custom prompt
-PS1='╭─\n║\n║\n╰────➤  [ \w ] ~# '
+PS1='╭─\n║\n║\n╰────➤ [ \w ] ~# '
 export PS1
 " >> ~/.bashrc
 fi

@@ -1,183 +1,185 @@
 #!/bin/bash
 
-# Detect OS
-OS_TYPE=$(uname)
-IS_LINUX=false
-IS_MAC=false
+# Detect OS type
+OS=$(uname -s)
 IS_WINDOWS=false
-IS_ANDROID=false
-IS_BSD=false
+IS_MAC=false
+IS_LINUX=false
+IS_TERMUX=false
 
-case "$OS_TYPE" in
-    "Linux")
+if [[ "$OS" == "Darwin" ]]; then
+    IS_MAC=true
+elif [[ "$OS" == "Linux" ]]; then
+    if [[ "$(uname -o)" == "Android" ]]; then
+        IS_TERMUX=true
+    else
         IS_LINUX=true
-        [[ "$(uname -o)" == "Android" ]] && IS_ANDROID=true
-        ;;
-    "Darwin") IS_MAC=true ;;
-    "MINGW"*|"CYGWIN"*|"MSYS"*) IS_WINDOWS=true ;;
-    "FreeBSD"|"NetBSD"|"OpenBSD") IS_BSD=true ;;
-esac
-
-# Detect Package Manager
-PKG_MANAGER=""
-if $IS_LINUX || $IS_BSD; then
-    if command -v apt &>/dev/null; then
-        PKG_MANAGER="apt"
-    elif command -v yum &>/dev/null; then
-        PKG_MANAGER="yum"
-    elif command -v dnf &>/dev/null; then
-        PKG_MANAGER="dnf"
-    elif command -v pacman &>/dev/null; then
-        PKG_MANAGER="pacman"
-    elif command -v zypper &>/dev/null; then
-        PKG_MANAGER="zypper"
-    elif command -v pkg &>/dev/null; then
-        PKG_MANAGER="pkg"
     fi
-elif $IS_MAC; then
-    PKG_MANAGER="brew"
-elif $IS_WINDOWS; then
-    if command -v choco &>/dev/null; then
-        PKG_MANAGER="choco"
-    elif command -v winget &>/dev/null; then
-        PKG_MANAGER="winget"
-    fi
+elif [[ "$OS" =~ "MINGW" || "$OS" =~ "CYGWIN" || "$OS" =~ "MSYS" ]]; then
+    IS_WINDOWS=true
 fi
 
-# Run commands silently
-run_command() {
-    eval "$1" >/dev/null 2>&1
+# Define usage function
+usage() {
+    echo "Usage: marcus [OPTION] [ARGUMENT]"
+    echo ""
+    echo "Options:"
+    echo "  --install <package>   Install a package based on OS"
+    echo "  --show                List files in the current directory"
+    echo "  --move <src> <dest>   Move a file or directory"
+    echo "  --rename <src> <new>  Rename a file or directory"
+    echo "  --copy <src> <dest>   Copy a file or directory"
+    echo "  --delete <file>       Delete a file"
+    echo "  --Delete <dir>        Delete a directory"
+    echo "  --zip <dir> <name>    Compress a directory"
+    echo "  --unzip <file.zip>    Extract a zip file"
+    echo "  --view <file>         View file contents"
+    echo "  --navigate <dir>      Navigate to a directory"
+    echo "  --back                Move one directory up"
+    echo "  --destination         Show current directory"
+    echo "  --ping <host>         Ping a host"
+    echo "  --help                Show this help message"
 }
 
-# Install package based on OS
-install_package() {
-    if [[ -n "$PKG_MANAGER" ]]; then
-        if [[ "$PKG_MANAGER" == "apt" || "$PKG_MANAGER" == "dnf" || "$PKG_MANAGER" == "yum" ]]; then
-            run_command "sudo $PKG_MANAGER install -y $1 || $PKG_MANAGER install -y $1"
-        elif [[ "$PKG_MANAGER" == "pacman" ]]; then
-            run_command "sudo pacman -S --noconfirm $1 || pacman -S --noconfirm $1"
-        elif [[ "$PKG_MANAGER" == "brew" ]]; then
-            run_command "brew install $1"
-        elif [[ "$PKG_MANAGER" == "choco" ]]; then
-            run_command "choco install $1 -y"
-        elif [[ "$PKG_MANAGER" == "winget" ]]; then
-            run_command "winget install --silent --accept-source-agreements --accept-package-agreements $1"
-        elif [[ "$PKG_MANAGER" == "pkg" ]]; then
-            run_command "pkg install -y $1"
-        fi
-    else
-        echo "No supported package manager found."
-        exit 1
-    fi
-}
+# Ensure at least one argument is provided
+if [[ $# -eq 0 ]]; then
+    usage
+    exit 1
+fi
 
-# Argument Parsing
-while [[ $# -gt 0 ]]; do
-    case "$1" in
-        -s|--show)
-            if $IS_WINDOWS; then dir; else ls; fi
-            shift
-            ;;
-        -a|--add)
-            run_command "touch '$2'"
-            shift 2
-            ;;
-        -mv|--move)
-            run_command "mv '$2' '$3'"
-            shift 3
-            ;;
-        -c|--create)
-            run_command "mkdir -p '$2'"
-            shift 2
-            ;;
-        -nv|--navigate)
-            [[ -d "$2" ]] && cd "$2" || exit
-            shift 2
-            ;;
-        -b|--back)
-            cd .. || exit
-            shift
-            ;;
-        -cp|--copy)
-            run_command "cp -r '$2' '$3'"
-            shift 3
-            ;;
-        -d|--delete)
-            run_command "rm -f '$2'"
-            shift 2
-            ;;
-        -D|--Delete)
-            run_command "rm -rf '$2'"
-            shift 2
-            ;;
-        -rn|--rename)
-            run_command "mv '$2' '$3'"
-            shift 3
-            ;;
-        -v|--view)
-            cat "$2"
-            shift 2
-            ;;
-        -dst|--destination)
-            pwd
-            shift
-            ;;
-        -z|--zip)
-            run_command "zip -r '$3.zip' '$2'"
-            shift 3
-            ;;
-        -unz|--unzip)
-            run_command "unzip '$2'"
-            shift 2
-            ;;
-        -i|--install)
-            install_package "$2"
-            shift 2
-            ;;
-        -up|--update)
-            if [[ -n "$PKG_MANAGER" ]]; then
-                if [[ "$PKG_MANAGER" == "apt" || "$PKG_MANAGER" == "dnf" || "$PKG_MANAGER" == "yum" ]]; then
-                    run_command "sudo $PKG_MANAGER update -y || $PKG_MANAGER update -y"
-                elif [[ "$PKG_MANAGER" == "pacman" ]]; then
-                    run_command "sudo pacman -Syu --noconfirm || pacman -Syu --noconfirm"
-                elif [[ "$PKG_MANAGER" == "brew" ]]; then
-                    run_command "brew update"
-                elif [[ "$PKG_MANAGER" == "choco" ]]; then
-                    run_command "choco upgrade all -y"
-                elif [[ "$PKG_MANAGER" == "winget" ]]; then
-                    run_command "winget upgrade --all --silent"
-                elif [[ "$PKG_MANAGER" == "pkg" ]]; then
-                    run_command "pkg update"
-                fi
-            else
-                echo "No supported package manager found."
-                exit 1
-            fi
-            shift
-            ;;
-        -perms|--permissions)
-            if $IS_LINUX || $IS_MAC || $IS_BSD; then
-                run_command "chmod +x '$2'"
-            elif $IS_WINDOWS; then
-                run_command "icacls '$2' /grant Everyone:F"
-            fi
-            shift 2
-            ;;
-        -exec|--execute)
-            if $IS_WINDOWS; then
-                run_command "start '$2'"
-            else
-                run_command "./'$2'"
-            fi
-            shift 2
-            ;;
-        -sys|--system-info)
-            uname -a
-            shift
-            ;;
-        *)
-            echo "Unknown command: $1"
+# Command Execution
+case "$1" in
+    --install)
+        if [[ -z "$2" ]]; then
+            echo "Error: No package specified."
             exit 1
-            ;;
-    esac
-done
+        fi
+        PACKAGE="$2"
+        if $IS_LINUX; then
+            if command -v apt &>/dev/null; then
+                sudo apt install -y "$PACKAGE"
+            elif command -v pacman &>/dev/null; then
+                sudo pacman -S --noconfirm "$PACKAGE"
+            elif command -v dnf &>/dev/null; then
+                sudo dnf install -y "$PACKAGE"
+            elif command -v zypper &>/dev/null; then
+                sudo zypper install -y "$PACKAGE"
+            else
+                echo "Unsupported package manager."
+            fi
+        elif $IS_MAC; then
+            brew install "$PACKAGE"
+        elif $IS_TERMUX; then
+            pkg install -y "$PACKAGE"
+        elif $IS_WINDOWS; then
+            choco install -y "$PACKAGE"
+        else
+            echo "Unsupported OS."
+        fi
+        ;;
+    
+    --show)
+        ls
+        ;;
+    
+    --move)
+        if [[ -z "$2" || -z "$3" ]]; then
+            echo "Error: Source and destination required."
+            exit 1
+        fi
+        mv "$2" "$3"
+        ;;
+    
+    --rename)
+        if [[ -z "$2" || -z "$3" ]]; then
+            echo "Error: Old and new name required."
+            exit 1
+        fi
+        mv "$2" "$3"
+        ;;
+    
+    --copy)
+        if [[ -z "$2" || -z "$3" ]]; then
+            echo "Error: Source and destination required."
+            exit 1
+        fi
+        cp -r "$2" "$3"
+        ;;
+    
+    --delete)
+        if [[ -z "$2" ]]; then
+            echo "Error: No file specified."
+            exit 1
+        fi
+        rm -f "$2"
+        ;;
+    
+    --Delete)
+        if [[ -z "$2" ]]; then
+            echo "Error: No directory specified."
+            exit 1
+        fi
+        rm -rf "$2"
+        ;;
+    
+    --zip)
+        if [[ -z "$2" || -z "$3" ]]; then
+            echo "Error: Directory and zip name required."
+            exit 1
+        fi
+        zip -r "$3" "$2"
+        ;;
+    
+    --unzip)
+        if [[ -z "$2" ]]; then
+            echo "Error: No zip file specified."
+            exit 1
+        fi
+        unzip "$2"
+        ;;
+    
+    --view)
+        if [[ -z "$2" ]]; then
+            echo "Error: No file specified."
+            exit 1
+        fi
+        cat "$2"
+        ;;
+    
+    --navigate)
+        if [[ -z "$2" ]]; then
+            echo "Error: No directory specified."
+            exit 1
+        fi
+        cd "$2" || echo "Error: Directory not found."
+        ;;
+    
+    --back)
+        cd ..
+        ;;
+    
+    --destination)
+        pwd
+        ;;
+    
+    --ping)
+        if [[ -z "$2" ]]; then
+            echo "Error: No host specified."
+            exit 1
+        fi
+        if $IS_WINDOWS; then
+            ping "$2"
+        else
+            ping -c 4 "$2"
+        fi
+        ;;
+    
+    --help)
+        usage
+        ;;
+    
+    *)
+        echo "Unknown command. Use --help for a list of commands."
+        exit 1
+        ;;
+esac

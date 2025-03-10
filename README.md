@@ -48,42 +48,71 @@ If the installation is successful, it will display available commands.
 
 ## **Usage Examples**
 
-```sh
 
-add  a file:
+## 🔹 Basic Commands
+| Command | Description |
+|---------|-------------|
+| `marcus --show` | List all files and directories (`ls` on Linux/macOS, `dir` on Windows) |
+| `marcus --destination` | Show the current working directory (`pwd` on Linux/macOS, `cd` on Windows) |
+| `marcus --back` | Go back one directory (`cd ..`) |
+| `marcus --navigate folder_name` | Move into a specific folder (`cd folder_name`) |
 
-marcus --add myfile.txt
+---
 
-Create a folder:
+## 📝 File Management
+| Command | Description |
+|---------|-------------|
+| `marcus --add filename` | Create a new file (`touch filename`) |
+| `marcus --create folder_name` | Create a new directory (`mkdir folder_name`) |
+| `marcus --delete filename` | Delete a file (`rm filename` on Linux/macOS, `del filename` on Windows) |
+| `marcus --Delete folder_name` | Delete a folder (`rm -rf folder_name` on Linux/macOS, `rmdir /s /q folder_name` on Windows) |
+| `marcus --move file_or_folder --to destination` | Move a file or folder (`mv file_or_folder destination`) |
+| `marcus --copy file_or_folder --to destination` | Copy a file or folder (`cp -r file_or_folder destination`) |
+| `marcus --rename old_name --to new_name` | Rename a file or folder (`mv old_name new_name`) |
+| `marcus --view filename` | View the contents of a file (`cat filename`) |
 
-marcus --create folder_name
+---
 
-Move a file:
+## 📦 File Compression
+| Command | Description |
+|---------|-------------|
+| `marcus --zip folder_name --AS archive_name.zip` | Zip a folder (`zip -r archive_name.zip folder_name`) |
+| `marcus --unzip archive.zip` | Unzip an archive (`unzip archive.zip`) |
 
-marcus --move myfile.txt --to /path/to/destination
+---
 
-List all files:
+## 🛠 Installation and Package Management
+| Command | Description |
+|---------|-------------|
+| `marcus --install package_name` | Install a package (`sudo apt install package_name`, `brew install package_name`, `pkg install package_name`, etc.) |
+| `marcus --update` | Update package lists (`sudo apt update`, `brew update`, etc.) |
+| `marcus --upgrade` | Upgrade installed packages (`sudo apt upgrade`, `brew upgrade`, etc.) |
+| `marcus --remove package_name` | Remove an installed package (`sudo apt remove package_name`, `brew uninstall package_name`, etc.) |
 
-marcus --show
+---
 
-Rename a file/folder:
+## ⚙️ System Information
+| Command | Description |
+|---------|-------------|
+| `marcus --sysinfo` | Show system information (`uname -a`, `lsb_release -a`, `systeminfo` on Windows) |
+| `marcus --disk` | Show disk usage (`df -h`) |
+| `marcus --memory` | Show memory usage (`free -h`) |
 
-marcus --rename old.txt --to new.txt
+---
 
-delete a file:
+## 🖥 Process Management
+| Command | Description |
+|---------|-------------|
+| `marcus --ps` | Show running processes (`ps aux` on Linux/macOS, `tasklist` on Windows) |
+| `marcus --kill process_id` | Kill a process (`kill process_id`) |
 
-marcus --delete unwanted.txt
+---
 
-Delete a folder:
-
-marcus --Delete folder_name
-
-Zip a folder:
-
-marcus --zip myfolder --AS  archive.zip
-
-```
-
+## 🌐 Networking
+| Command | Description |
+|---------|-------------|
+| `marcus --ping address` | Ping a network address (`ping address`) |
+| `marcus --ip` | Show local IP address (`hostname -I` on Linux/macOS, `ipconfig` on Windows) |
 ---
 
 📜 **License**
