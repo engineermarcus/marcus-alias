@@ -1,54 +1,83 @@
 #!/bin/bash
 
-# Detect if running on macOS
-IS_MACOS=$(uname | grep -i "darwin" > /dev/null && echo "true" || echo "false")
+# Detect OS
+OS_TYPE=$(uname)
+IS_LINUX=false
+IS_MAC=false
+IS_WINDOWS=false
+IS_ANDROID=false
+IS_BSD=false
 
-# Function to display usage guide
-function usage() {
-    echo "Marcus Alias  Command Manager"
-    echo "Usage: $0 [OPTIONS] or directly input a Bash command"
-    echo "Options:"
-    echo "  -a, --add FILE          Create a file"
-    echo "  -mv, --move SRC DST     Move a file or folder"
-    echo "  -s, --show              List existing files and directories"
-    echo "  -c, --create DIR        Create a folder"
-    echo "  -nv, --navigate DIR     Navigate to a folder"
-    echo "  -cp, --copy SRC DST     Copy file or folder"
-    echo "  -d, --delete FILE       Delete a file"
-    echo "  -D, --Delete DIR        Delete a folder"
-    echo "  -rn, --rename SRC DST   Rename a file or folder"
-    echo "  -v, --view FILE         View file contents"
-    echo "  -dst, --destination     Show current working directory"
-    echo "  -z, --zip DIR NAME      Zip a folder"
-    echo "  -unz, --unzip FILE      Unzip a folder.zip"
-    echo "  -b, --back              Go back (cd ..)"
-    echo "  -cmd, --command 'CMD'   Execute any Bash command"
-    echo "  -i, --interactive       Enter interactive mode (type commands live)"
-    exit 1
+case "$OS_TYPE" in
+    "Linux")
+        IS_LINUX=true
+        [[ "$(uname -o)" == "Android" ]] && IS_ANDROID=true
+        ;;
+    "Darwin") IS_MAC=true ;;
+    "MINGW"*|"CYGWIN"*|"MSYS"*) IS_WINDOWS=true ;;
+    "FreeBSD"|"NetBSD"|"OpenBSD") IS_BSD=true ;;
+esac
+
+# Detect Package Manager
+PKG_MANAGER=""
+if $IS_LINUX || $IS_BSD; then
+    if command -v apt &>/dev/null; then
+        PKG_MANAGER="apt"
+    elif command -v yum &>/dev/null; then
+        PKG_MANAGER="yum"
+    elif command -v dnf &>/dev/null; then
+        PKG_MANAGER="dnf"
+    elif command -v pacman &>/dev/null; then
+        PKG_MANAGER="pacman"
+    elif command -v zypper &>/dev/null; then
+        PKG_MANAGER="zypper"
+    elif command -v pkg &>/dev/null; then
+        PKG_MANAGER="pkg"
+    fi
+elif $IS_MAC; then
+    PKG_MANAGER="brew"
+elif $IS_WINDOWS; then
+    if command -v choco &>/dev/null; then
+        PKG_MANAGER="choco"
+    elif command -v winget &>/dev/null; then
+        PKG_MANAGER="winget"
+    fi
+fi
+
+# Run commands silently
+run_command() {
+    eval "$1" >/dev/null 2>&1
 }
 
-# Function to execute a command and display status
-run_command() {
-    if eval "$1"; then
-        echo "✔ Command executed successfully"
+# Install package based on OS
+install_package() {
+    if [[ -n "$PKG_MANAGER" ]]; then
+        if [[ "$PKG_MANAGER" == "apt" || "$PKG_MANAGER" == "dnf" || "$PKG_MANAGER" == "yum" ]]; then
+            run_command "sudo $PKG_MANAGER install -y $1 || $PKG_MANAGER install -y $1"
+        elif [[ "$PKG_MANAGER" == "pacman" ]]; then
+            run_command "sudo pacman -S --noconfirm $1 || pacman -S --noconfirm $1"
+        elif [[ "$PKG_MANAGER" == "brew" ]]; then
+            run_command "brew install $1"
+        elif [[ "$PKG_MANAGER" == "choco" ]]; then
+            run_command "choco install $1 -y"
+        elif [[ "$PKG_MANAGER" == "winget" ]]; then
+            run_command "winget install --silent --accept-source-agreements --accept-package-agreements $1"
+        elif [[ "$PKG_MANAGER" == "pkg" ]]; then
+            run_command "pkg install -y $1"
+        fi
     else
-        echo "✘ Error executing command: $1"
+        echo "No supported package manager found."
+        exit 1
     fi
 }
 
-# Interactive mode: keep executing commands until exit
-interactive_mode() {
-    echo "💻 Entering Interactive Mode (type 'exit' to quit)"
-    while true; do
-        read -rp "Marcus$ " user_cmd
-        [[ "$user_cmd" == "exit" ]] && break
-        eval "$user_cmd"
-    done
-}
-
-# Parse arguments
+# Argument Parsing
 while [[ $# -gt 0 ]]; do
     case "$1" in
+        -s|--show)
+            if $IS_WINDOWS; then dir; else ls; fi
+            shift
+            ;;
         -a|--add)
             run_command "touch '$2'"
             shift 2
@@ -57,22 +86,17 @@ while [[ $# -gt 0 ]]; do
             run_command "mv '$2' '$3'"
             shift 3
             ;;
-        -s|--show)
-            run_command "ls -l"
-            shift
-            ;;
         -c|--create)
             run_command "mkdir -p '$2'"
             shift 2
             ;;
         -nv|--navigate)
-            if [[ -d "$2" ]]; then
-                cd "$2" || exit
-                echo "✔ Navigated to '$2'"
-            else
-                echo "✘ Error: '$2' is not a valid directory"
-            fi
+            [[ -d "$2" ]] && cd "$2" || exit
             shift 2
+            ;;
+        -b|--back)
+            cd .. || exit
+            shift
             ;;
         -cp|--copy)
             run_command "cp -r '$2' '$3'"
@@ -91,11 +115,11 @@ while [[ $# -gt 0 ]]; do
             shift 3
             ;;
         -v|--view)
-            run_command "cat '$2'"
+            cat "$2"
             shift 2
             ;;
         -dst|--destination)
-            run_command "pwd"
+            pwd
             shift
             ;;
         -z|--zip)
@@ -106,22 +130,54 @@ while [[ $# -gt 0 ]]; do
             run_command "unzip '$2'"
             shift 2
             ;;
-        -b|--back)
-            cd .. || exit
-            echo "✔ Moved one directory back"
-            shift
-            ;;
-        -cmd|--command)
-            run_command "$2"
+        -i|--install)
+            install_package "$2"
             shift 2
             ;;
-        -i|--interactive)
-            interactive_mode
-            exit
+        -up|--update)
+            if [[ -n "$PKG_MANAGER" ]]; then
+                if [[ "$PKG_MANAGER" == "apt" || "$PKG_MANAGER" == "dnf" || "$PKG_MANAGER" == "yum" ]]; then
+                    run_command "sudo $PKG_MANAGER update -y || $PKG_MANAGER update -y"
+                elif [[ "$PKG_MANAGER" == "pacman" ]]; then
+                    run_command "sudo pacman -Syu --noconfirm || pacman -Syu --noconfirm"
+                elif [[ "$PKG_MANAGER" == "brew" ]]; then
+                    run_command "brew update"
+                elif [[ "$PKG_MANAGER" == "choco" ]]; then
+                    run_command "choco upgrade all -y"
+                elif [[ "$PKG_MANAGER" == "winget" ]]; then
+                    run_command "winget upgrade --all --silent"
+                elif [[ "$PKG_MANAGER" == "pkg" ]]; then
+                    run_command "pkg update"
+                fi
+            else
+                echo "No supported package manager found."
+                exit 1
+            fi
+            shift
+            ;;
+        -perms|--permissions)
+            if $IS_LINUX || $IS_MAC || $IS_BSD; then
+                run_command "chmod +x '$2'"
+            elif $IS_WINDOWS; then
+                run_command "icacls '$2' /grant Everyone:F"
+            fi
+            shift 2
+            ;;
+        -exec|--execute)
+            if $IS_WINDOWS; then
+                run_command "start '$2'"
+            else
+                run_command "./'$2'"
+            fi
+            shift 2
+            ;;
+        -sys|--system-info)
+            uname -a
+            shift
             ;;
         *)
-            echo "✘ Unknown option: $1"
-            usage
+            echo "Unknown command: $1"
+            exit 1
             ;;
     esac
 done
