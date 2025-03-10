@@ -6,7 +6,7 @@
 
 **Universal Installation Guide**
 
-Marcus Alias File Manager is a command-line tool for managing files and directories efficiently. This script works across Termux, Linux, macOS, and Windows (Git Bash & WSL).
+Marcus Alias is a command-line tool that enables you to run one command that covers the same type of command across all os platforms efficiently.For example the same command you run to create a folder on windows is the same command you'll run to create a folder on Linux if using Marcus Alias.This script works across Termux, Linux, macOS, and Windows (Git Bash & WSL).
 
 
 ## **Installation**
