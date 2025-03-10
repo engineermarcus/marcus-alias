@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Detect OS type
+# Detect OS Type
 OS=$(uname -s)
 IS_WINDOWS=false
 IS_MAC=false
@@ -19,27 +19,65 @@ elif [[ "$OS" =~ "MINGW" || "$OS" =~ "CYGWIN" || "$OS" =~ "MSYS" ]]; then
     IS_WINDOWS=true
 fi
 
-# Define usage function
+# Package Manager Detection
+if $IS_LINUX; then
+    if command -v apt &>/dev/null; then
+        PKG_MANAGER="sudo apt"
+    elif command -v dnf &>/dev/null; then
+        PKG_MANAGER="sudo dnf"
+    elif command -v yum &>/dev/null; then
+        PKG_MANAGER="sudo yum"
+    elif command -v pacman &>/dev/null; then
+        PKG_MANAGER="sudo pacman -S"
+    elif command -v zypper &>/dev/null; then
+        PKG_MANAGER="sudo zypper"
+    fi
+elif $IS_MAC; then
+    if command -v brew &>/dev/null; then
+        PKG_MANAGER="brew"
+    else
+        echo "Error: Homebrew not installed. Install it from https://brew.sh/"
+        exit 1
+    fi
+elif $IS_TERMUX; then
+    PKG_MANAGER="pkg"
+elif $IS_WINDOWS; then
+    if command -v choco &>/dev/null; then
+        PKG_MANAGER="choco"
+    elif command -v scoop &>/dev/null; then
+        PKG_MANAGER="scoop"
+    else
+        echo "Error: No package manager found for Windows. Install Chocolatey or Scoop."
+        exit 1
+    fi
+fi
+
+# Function to display usage
 usage() {
     echo "Usage: marcus [OPTION] [ARGUMENT]"
     echo ""
     echo "Options:"
     echo "  --install <package>   Install a package based on OS"
+    echo "  --update              Update system packages"
+    echo "  --clear               Clear the terminal screen"
     echo "  --show                List files in the current directory"
-    echo "  --move <src> <dest>   Move a file or directory"
-    echo "  --rename <src> <new>  Rename a file or directory"
-    echo "  --copy <src> <dest>   Copy a file or directory"
+    echo "  --perm <file>         Make a file executable (chmod +x)"
+    echo "  --sysinfo             Display system information"
+    echo "  --memory              Show memory usage"
+    echo "  --ps                  List running processes"
+    echo "  --kill <PID>          Kill a process by PID"
+    echo "  --ip                  Show system's IP address"
+    echo "  --add <file>          Create an empty file"
+    echo "  --create <folder>     Create a new directory"
     echo "  --delete <file>       Delete a file"
-    echo "  --Delete <dir>        Delete a directory"
-    echo "  --zip <dir> <name>    Compress a directory"
-    echo "  --unzip <file.zip>    Extract a zip file"
+    echo "  --Delete <folder>     Delete a folder"
+    echo "  --move <source> --to <dest>  Move file/folder"
+    echo "  --copy <source> --to <dest>  Copy file/folder"
+    echo "  --zip <folder> --as <zipname>  Zip a folder"
+    echo "  --unzip <zipfile>     Unzip a folder"
     echo "  --view <file>         View file contents"
-    echo "  --navigate <dir>      Navigate to a directory"
+    echo "  --destination         Show current working directory"
     echo "  --back                Move one directory up"
-    echo "  --destination         Show current directory"
-    echo "  --ping <host>         Ping a host"
-    echo "  --create <folder>     Create a new folder"
-    echo "  --add <file>          Create a new empty file"
     echo "  --help                Show this help message"
 }
 
@@ -56,134 +94,53 @@ case "$1" in
             echo "Error: No package specified."
             exit 1
         fi
-        PACKAGE="$2"
-        if $IS_LINUX; then
-            if command -v apt &>/dev/null; then
-                sudo apt install -y "$PACKAGE"
-            elif command -v pacman &>/dev/null; then
-                sudo pacman -S --noconfirm "$PACKAGE"
-            elif command -v dnf &>/dev/null; then
-                sudo dnf install -y "$PACKAGE"
-            elif command -v zypper &>/dev/null; then
-                sudo zypper install -y "$PACKAGE"
-            else
-                echo "Unsupported package manager."
-            fi
-        elif $IS_MAC; then
-            brew install "$PACKAGE"
-        elif $IS_TERMUX; then
-            pkg install -y "$PACKAGE"
-        elif $IS_WINDOWS; then
-            choco install -y "$PACKAGE"
-        else
-            echo "Unsupported OS."
-        fi
+        $PKG_MANAGER install -y "$2"
         ;;
-    
+
+    --update)
+        $PKG_MANAGER update -y
+        ;;
+
+    --clear)
+        clear
+        ;;
+
     --show)
         ls
         ;;
-    
-    --move)
-        if [[ -z "$2" || -z "$3" ]]; then
-            echo "Error: Source and destination required."
-            exit 1
-        fi
-        mv "$2" "$3"
-        ;;
-    
-    --rename)
-        if [[ -z "$2" || -z "$3" ]]; then
-            echo "Error: Old and new name required."
-            exit 1
-        fi
-        mv "$2" "$3"
-        ;;
-    
-    --copy)
-        if [[ -z "$2" || -z "$3" ]]; then
-            echo "Error: Source and destination required."
-            exit 1
-        fi
-        cp -r "$2" "$3"
-        ;;
-    
-    --delete)
+
+    --perm)
         if [[ -z "$2" ]]; then
             echo "Error: No file specified."
             exit 1
         fi
-        rm -f "$2"
+        chmod +x "$2"
         ;;
-    
-    --Delete)
+
+    --sysinfo)
+        uname -a
+        ;;
+
+    --memory)
+        free -h
+        ;;
+
+    --ps)
+        ps aux
+        ;;
+
+    --kill)
         if [[ -z "$2" ]]; then
-            echo "Error: No directory specified."
+            echo "Error: No PID specified."
             exit 1
         fi
-        rm -rf "$2"
+        kill -9 "$2"
         ;;
-    
-    --zip)
-        if [[ -z "$2" || -z "$3" ]]; then
-            echo "Error: Directory and zip name required."
-            exit 1
-        fi
-        zip -r "$3" "$2"
+
+    --ip)
+        hostname -I
         ;;
-    
-    --unzip)
-        if [[ -z "$2" ]]; then
-            echo "Error: No zip file specified."
-            exit 1
-        fi
-        unzip "$2"
-        ;;
-    
-    --view)
-        if [[ -z "$2" ]]; then
-            echo "Error: No file specified."
-            exit 1
-        fi
-        cat "$2"
-        ;;
-    
-    --navigate)
-        if [[ -z "$2" ]]; then
-            echo "Error: No directory specified."
-            exit 1
-        fi
-        cd "$2" || echo "Error: Directory not found."
-        ;;
-    
-    --back)
-        cd ..
-        ;;
-    
-    --destination)
-        pwd
-        ;;
-    
-    --ping)
-        if [[ -z "$2" ]]; then
-            echo "Error: No host specified."
-            exit 1
-        fi
-        if $IS_WINDOWS; then
-            ping "$2"
-        else
-            ping -c 4 "$2"
-        fi
-        ;;
-    
-    --create)
-        if [[ -z "$2" ]]; then
-            echo "Error: No folder name specified."
-            exit 1
-        fi
-        mkdir -p "$2"
-        ;;
-    
+
     --add)
         if [[ -z "$2" ]]; then
             echo "Error: No file name specified."
@@ -191,11 +148,83 @@ case "$1" in
         fi
         touch "$2"
         ;;
-    
+
+    --create)
+        if [[ -z "$2" ]]; then
+            echo "Error: No folder name specified."
+            exit 1
+        fi
+        mkdir -p "$2"
+        ;;
+
+    --delete)
+        if [[ -z "$2" ]]; then
+            echo "Error: No file specified."
+            exit 1
+        fi
+        rm -f "$2"
+        ;;
+
+    --Delete)
+        if [[ -z "$2" ]]; then
+            echo "Error: No folder specified."
+            exit 1
+        fi
+        rm -rf "$2"
+        ;;
+
+    --move)
+        if [[ -z "$2" || -z "$4" ]]; then
+            echo "Error: Missing source or destination."
+            exit 1
+        fi
+        mv "$2" "$4"
+        ;;
+
+    --copy)
+        if [[ -z "$2" || -z "$4" ]]; then
+            echo "Error: Missing source or destination."
+            exit 1
+        fi
+        cp -r "$2" "$4"
+        ;;
+
+    --zip)
+        if [[ -z "$2" || -z "$4" ]]; then
+            echo "Error: Missing folder or zip name."
+            exit 1
+        fi
+        zip -r "$4" "$2"
+        ;;
+
+    --unzip)
+        if [[ -z "$2" ]]; then
+            echo "Error: No zip file specified."
+            exit 1
+        fi
+        unzip "$2"
+        ;;
+
+    --view)
+        if [[ -z "$2" ]]; then
+            echo "Error: No file specified."
+            exit 1
+        fi
+        cat "$2"
+        ;;
+
+    --destination)
+        pwd
+        ;;
+
+    --back)
+        cd ..
+        ;;
+
     --help)
         usage
         ;;
-    
+
     *)
         echo "Unknown command. Use --help for a list of commands."
         exit 1

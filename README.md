@@ -46,7 +46,7 @@ If the installation is successful, it will display available commands.
 
 ---
 
-## **Usage Examples**
+## **Usage**
 
 
 ## 🔹 Basic Commands
@@ -114,7 +114,30 @@ If the installation is successful, it will display available commands.
 | `marcus --ping address` | Ping a network address (`ping address`) |
 | `marcus --ip` | Show local IP address (`hostname -I` on Linux/macOS, `ipconfig` on Windows) |
 ---
-
+## **Example Usages**
+```sh
+marcus --install nodejs      # Install package
+marcus --update              # Update system packages
+marcus --clear               # Clear terminal
+marcus --show                # List files
+marcus --perm file.py        # Make file executable
+marcus --sysinfo             # System info
+marcus --memory              # Memory usage
+marcus --ps                  # Running processes
+marcus --kill 1234           # Kill process
+marcus --ip                  # Show IP address
+marcus --add file.txt        # Create file
+marcus --create my_folder    # Create folder
+marcus --delete file.txt     # Delete file
+marcus --Delete my_folder    # Delete folder
+marcus --move file --to dir  # Move file
+marcus --copy file --to dir  # Copy file
+marcus --zip my_folder --as archive.zip  # Zip folder
+marcus --unzip archive.zip   # Unzip file
+marcus --view file.txt       # View file content
+marcus --destination         # Show current directory
+marcus --back                # Move up one directory
+```
 📜 **License**
 
 This project is licensed under the MIT License.
